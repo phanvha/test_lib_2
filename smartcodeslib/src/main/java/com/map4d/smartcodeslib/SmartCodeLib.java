@@ -1,13 +1,22 @@
 package com.map4d.smartcodeslib;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.res.Resources;
 import android.util.Log;
+
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -23,7 +32,7 @@ public class SmartCodeLib {
         String latlng = latitude+","+longitude;
         String versionAPI = "v1.0";
         API_Smartcode_Interface service = API_Smartcode.getClient2().create(API_Smartcode_Interface.class);
-        retrofit2.Call<Model_Smartcode_Data> userCall = service.getSmartcodeData(versionAPI, latlng);
+        Call<Model_Smartcode_Data> userCall = service.getSmartcodeData(versionAPI, latlng);
         userCall.enqueue(new Callback<Model_Smartcode_Data>() {
             @Override
             public void onResponse(Call<Model_Smartcode_Data> call, Response<Model_Smartcode_Data> response) {
@@ -109,20 +118,22 @@ public class SmartCodeLib {
     }
 
     public static String saveJsonFileToLocal(Context context) {
+        InputStream is = context.getResources().openRawResource(R.raw.country);
+        Writer writer = new StringWriter();
+        char[] buffer = new char[1024];
         try {
-            InputStream is = context.getAssets().open("country.json");
-            int size = is.available();
-            byte[] buffer = new byte[size];
-            is.read(buffer);
-            is.close();
-            json = new String(buffer, "UTF-8");
-
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            return null;
+            Reader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+            int n;
+            while ((n = reader.read(buffer)) != -1) {
+                writer.write(buffer, 0, n);
+            }
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        Log.e("data_json_a", json);
+
+        json = writer.toString();
         return json;
     }
 }
